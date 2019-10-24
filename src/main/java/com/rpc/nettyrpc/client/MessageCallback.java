@@ -1,4 +1,4 @@
-package com.rpc.nettyrpc.client.handler;
+package com.rpc.nettyrpc.client;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -8,24 +8,18 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.rpc.config.RpcSystemConfig;
-import com.rpc.exception.InvokeErrorException;
 import com.rpc.exception.RejectResponeException;
-import com.rpc.model.MessageRequest;
 import com.rpc.model.MessageResponse;
 
 /**
- * 消息回调方法；传入请求，等待请求完成后，会回填响应
+ * 类似于Future，根据请求，设置响应；获取时，如果还没收到响应，等待；设置好后，唤醒
+ * 
  * @author maj
  *
  */
 public class MessageCallback {
 	static final Logger LOG = LoggerFactory.getLogger(MessageCallback.class);
 	
-	/**
-	 * 请求
-	 */
-    private MessageRequest request;
     /**
      * 响应
      */
@@ -41,12 +35,9 @@ public class MessageCallback {
      */
     private Condition finishCondition = lock.newCondition();
     
-    public MessageCallback(MessageRequest request) {
-        this.request = request;
-    }
-    
     /**
-     * 回填响应
+     * 回填响应；回填后signal一下get阻塞的线程
+     * 
      * @param response
      */
     public void backfillResponse(MessageResponse response){
@@ -65,11 +56,10 @@ public class MessageCallback {
      * 获取响应信息，如果还没有返回，会阻塞等待
      */
     public Object getResponseDataSync() {
-//    	if(isFinish) {
-//    		System.out.println("响应还未返回");
-//    		return getResponseData();
-//    	}
-    	
+        if (isFinish) {
+            return getResponseData();
+        }
+
     	try {
     		lock.lock();
     		// 等待响应完成
@@ -98,11 +88,10 @@ public class MessageCallback {
      */
     private Object getResponseData() {
     	if (this.response != null) {
-            boolean isInvokeSucc = isInvokeResultSuccess();
-            if (isInvokeSucc) {
+            if (isInvokeResultSuccess()) {
                 return this.response.getResult();
             } else {
-                throw new RejectResponeException(RpcSystemConfig.FILTER_RESPONSE_MSG);
+                throw new RejectResponeException(response.getError());
             }
         } else {
             return null;

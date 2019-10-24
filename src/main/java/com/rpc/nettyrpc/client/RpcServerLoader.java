@@ -1,31 +1,35 @@
-package com.rpc.nettyrpc;
+package com.rpc.nettyrpc.client;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.aspectj.bridge.MessageHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
+import com.esotericsoftware.minlog.Log;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.rpc.config.RpcSystemConfig;
-import com.rpc.nettyrpc.client.MessageSendInitializeTask;
+import com.rpc.nettyrpc.client.handler.MessageSendChannelInitializer;
 import com.rpc.nettyrpc.client.handler.MessageSendHandler;
 import com.rpc.parallel.RpcThreadPool;
-import com.rpc.serialize.RpcSerializeProtocol;
+import com.rpc.serialize.RpcSerializeProtocolEnum;
 
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioSocketChannel;
 
 /**
- * 服务端加载器
+ * 客户端连接服务端的加载器，load方法启动，连接服务端
+ * 
  * @author maj
  *
  */
@@ -58,10 +62,7 @@ public class RpcServerLoader {
      * ":"分隔符
      */
     private static final String DELIMITER = RpcSystemConfig.DELIMITER;
-    /**
-     * 默认序列化方式
-     */
-    private RpcSerializeProtocol serializeProtocol = RpcSerializeProtocol.JDKSERIALIZE;
+
     /**
      * 线程组线程数，系统可用核数*2
      */
@@ -70,12 +71,6 @@ public class RpcServerLoader {
      * NioEventLoopGroup对象
      */
     private EventLoopGroup eventLoopGroup = new NioEventLoopGroup(PARALLEL);
-    
-    /**
-     * netty rpc线程池数量
-     */
-    private static int threadNums = RpcSystemConfig.SYSTEM_PROPERTY_THREADPOOL_THREAD_NUMS;
-    private static int queueNums = RpcSystemConfig.SYSTEM_PROPERTY_THREADPOOL_QUEUE_NUMS;
     
     /**
      * guava修饰的：带监听功能的线程池
@@ -102,7 +97,7 @@ public class RpcServerLoader {
      * @param serverAddress
      * @param serializeProtocol
      */
-    public void load(String serverAddress, RpcSerializeProtocol serializeProtocol) {
+    public void load(String serverAddress, RpcSerializeProtocolEnum serializeProtocol) {
     	String[] ipAddr = serverAddress.split(DELIMITER);
     	if(ipAddr.length == RpcSystemConfig.IPADDR_OPRT_ARRAY_LENGTH) {
     		String host = ipAddr[0];
@@ -111,28 +106,48 @@ public class RpcServerLoader {
     		
     		LOG.info("客户端启动，连接远程服务：" + serverAddress);
     		
-    		ListenableFuture<Boolean> listenableFuture = threadPoolExecutor.submit(new MessageSendInitializeTask(eventLoopGroup, address, serializeProtocol));
+            Bootstrap b = new Bootstrap();
+            b.group(eventLoopGroup).channel(NioSocketChannel.class).option(ChannelOption.SO_KEEPALIVE, true)
+                    .remoteAddress(address);
 
-    		Futures.addCallback(listenableFuture, new FutureCallback<Boolean>() {
+            b.handler(new MessageSendChannelInitializer(serializeProtocol));
 
-				@Override
-				public void onSuccess(Boolean result) {
-					// 方法返回时，连接还未成功，MessageSendHandler还没有设置
-					// 但是我们在调用发送请求的方法时，不一定连接成功了，
-					// 在没连接成功获取MessageSendHandler为空，阻塞等待，所以需要同步通知一下
-					// 在连接成功后，设置Handler信息的时候，唤醒一下
-					// 此处唤醒没啥用，此时还没有连接成功呢
-					
-				}
-
-				@Override
-				public void onFailure(Throwable t) {
-					LOG.error("连接服务端错误", t);
-				}
-			}, threadPoolExecutor);
+            connect(b, address);
     	}
     }
     
+    /**
+     * Bootstrap连接服务端
+     * 
+     * @param b
+     * @param address
+     *            void
+     * @date: 2019年10月24日 上午10:56:56
+     */
+    public void connect(Bootstrap b, InetSocketAddress address) {
+        ChannelFuture channelFuture = b.connect();
+        channelFuture.addListener(new ChannelFutureListener() {
+
+            @Override
+            public void operationComplete(ChannelFuture future) throws Exception {
+                // 连接成功
+                if (future.isSuccess()) {
+                    MessageSendHandler handler = future.channel().pipeline().get(MessageSendHandler.class);
+                    setMessageSendHandler(handler);
+                } else { // 连接失败，过一段时间重试
+                    eventLoopGroup.schedule(() -> {
+                        Log.info("重新尝试连接服务端:    " + address.getHostName() + ":" + address.getPort());
+                        try {
+                            connect(b, address);
+                        } catch (Exception e) {
+                            LOG.error("尝试重新连接错误", e);
+                        }
+                    }, RpcSystemConfig.SYSTEM_PROPERTY_CLIENT_RECONNECT_DELAY, TimeUnit.SECONDS);
+                }
+            }
+        });
+    }
+
     /**
      * 设置messageSendHandler信息，成功连接状态
      * @param messageSendHandler

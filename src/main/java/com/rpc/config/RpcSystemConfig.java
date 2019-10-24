@@ -30,6 +30,8 @@ public class RpcSystemConfig {
     public static final int SERIALIZE_POOL_MAX_WAIT_MILLIS = 5000;
     public static final int SERIALIZE_POOL_MIN_EVICTABLE_IDLE_TIME_MILLIS = 600000;
 
+    public static final int ONE = 1;
+
     private static boolean monitorServerSupport = false;
 
     public static boolean isMonitorServerSupport() {

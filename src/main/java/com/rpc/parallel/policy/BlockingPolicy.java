@@ -16,7 +16,7 @@ public class BlockingPolicy implements RejectedExecutionHandler {
 	
 	@Override
 	public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-		LOG.info("线程池满了，线程放入阻塞队列，等待中.....");
+        LOG.info("线程池满了阻塞队列也满了，线程重新放入阻塞队列，阻塞中.....");
 		if(!executor.isShutdown()) {
 			try {
 				executor.getQueue().put(r);

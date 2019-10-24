@@ -1,11 +1,11 @@
 package com.rpc.nettyrpc.client;
 
 import com.google.common.reflect.Reflection;
-import com.rpc.nettyrpc.RpcServerLoader;
-import com.rpc.serialize.RpcSerializeProtocol;
+import com.rpc.serialize.RpcSerializeProtocolEnum;
 
 /**
- * 消息发送类
+ * 消息发送执行器
+ * 
  * @author maj
  *
  */
@@ -30,11 +30,12 @@ public class MessageSendExecutor {
 	private RpcServerLoader rpcServerLoader = RpcServerLoader.getInstance();
 	
 	/**
-	 * 设置远程连接信息；进行远程连接
-	 * @param serverAddress
-	 * @param serializeProtocol
-	 */
-	public MessageSendExecutor setRpcServerLoader(String serverAddress, RpcSerializeProtocol serializeProtocol) {
+     * 设置远程连接信息；进行远程连接；启动客户端
+     * 
+     * @param serverAddress
+     * @param serializeProtocol
+     */
+	public MessageSendExecutor setRpcServerLoader(String serverAddress, RpcSerializeProtocolEnum serializeProtocol) {
 		rpcServerLoader.load(serverAddress, serializeProtocol);
 		return this;
 	}

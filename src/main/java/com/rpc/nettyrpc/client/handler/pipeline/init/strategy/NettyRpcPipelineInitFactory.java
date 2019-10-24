@@ -2,7 +2,7 @@ package com.rpc.nettyrpc.client.handler.pipeline.init.strategy;
 
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.MutableClassToInstanceMap;
-import com.rpc.serialize.RpcSerializeProtocol;
+import com.rpc.serialize.RpcSerializeProtocolEnum;
 
 /**
  * 根据序列化方式获取初始化pipeline公爵
@@ -20,7 +20,7 @@ public class NettyRpcPipelineInitFactory {
 //        handler.putInstance(ProtostuffSendHandler.class, new ProtostuffSendHandler());
     }
 	
-	public static NettyRpcPipelineInit getNettyRpcPipelineInitUtil(RpcSerializeProtocol protocol) {
+	public static NettyRpcPipelineInit getNettyRpcPipelineInitUtil(RpcSerializeProtocolEnum protocol) {
 		NettyRpcPipelineInit initUtil = null;
 		switch(protocol) {
 			case JDKSERIALIZE:{

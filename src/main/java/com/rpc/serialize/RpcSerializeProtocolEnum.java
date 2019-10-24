@@ -8,12 +8,12 @@ import org.apache.commons.lang3.builder.ToStringStyle;
  * @author maj
  *
  */
-public enum RpcSerializeProtocol {
+public enum RpcSerializeProtocolEnum {
 	JDKSERIALIZE("jdknative"), KRYOSERIALIZE("kryo"), HESSIANSERIALIZE("hessian"), PROTOSTUFFSERIALIZE("protostuff");
 
     private String serializeProtocol;
 
-    private RpcSerializeProtocol(String serializeProtocol) {
+    private RpcSerializeProtocolEnum(String serializeProtocol) {
         this.serializeProtocol = serializeProtocol;
     }
 
@@ -23,6 +23,12 @@ public enum RpcSerializeProtocol {
         return ReflectionToStringBuilder.toString(this);
     }
 
+    /**
+     * 获取序列化方式
+     * 
+     * @return String
+     * @date: 2019年10月23日 下午5:36:43
+     */
     public String getProtocol() {
         return serializeProtocol;
     }

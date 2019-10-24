@@ -1,7 +1,7 @@
 package com.rpc.nettyrpc.client.handler;
 
 import com.rpc.nettyrpc.client.handler.pipeline.init.strategy.NettyRpcPipelineInitFactory;
-import com.rpc.serialize.RpcSerializeProtocol;
+import com.rpc.serialize.RpcSerializeProtocolEnum;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
@@ -16,9 +16,9 @@ public class MessageSendChannelInitializer extends ChannelInitializer<SocketChan
 	/**
 	 * 序列化协议
 	 */
-	private RpcSerializeProtocol rpcSerializeProtocol;
+	private RpcSerializeProtocolEnum rpcSerializeProtocol;
 	
-	public MessageSendChannelInitializer(RpcSerializeProtocol rpcSerializeProtocol) {
+	public MessageSendChannelInitializer(RpcSerializeProtocolEnum rpcSerializeProtocol) {
 		super();
 		this.rpcSerializeProtocol = rpcSerializeProtocol;
 	}

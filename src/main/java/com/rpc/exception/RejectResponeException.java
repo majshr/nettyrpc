@@ -6,6 +6,8 @@ package com.rpc.exception;
  *
  */
 public class RejectResponeException extends RuntimeException {
+    private static final long serialVersionUID = -1419072469292222928L;
+
     public RejectResponeException() {
         super();
     }

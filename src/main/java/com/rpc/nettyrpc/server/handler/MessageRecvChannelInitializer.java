@@ -1,29 +1,29 @@
 package com.rpc.nettyrpc.server.handler;
 
-import java.util.Map;
-
 import com.rpc.nettyrpc.server.handler.pipeline.init.strategy.NettyRpcPipelineInitRecvFactory;
-import com.rpc.serialize.RpcSerializeProtocol;
+import com.rpc.serialize.RpcSerializeProtocolEnum;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 
+/**
+ * handler初始化
+ * 
+ * @author mengaijun
+ * @Description: TODO
+ * @date: 2019年10月23日 下午5:57:25
+ */
 public class MessageRecvChannelInitializer extends ChannelInitializer<SocketChannel>{
 
 	/**
-	 * 序列化格式
-	 */
-	private RpcSerializeProtocol protocol;
+     * 序列化方式
+     */
+	private RpcSerializeProtocolEnum protocol;
 	
-	private Map<String, Object> handlerMap;
-	
-	public MessageRecvChannelInitializer(RpcSerializeProtocol protocol, Map<String, Object> handlerMap) {
-		super();
-		this.protocol = protocol;
-		this.handlerMap = handlerMap;
-	}
-
-
+    public MessageRecvChannelInitializer(RpcSerializeProtocolEnum protocol) {
+        super();
+        this.protocol = protocol;
+    }
 
 	@Override
 	protected void initChannel(SocketChannel ch) throws Exception {

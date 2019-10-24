@@ -10,6 +10,12 @@ import org.slf4j.LoggerFactory;
 
 import com.rpc.parallel.policy.BlockingPolicy;
 
+/**
+ * 
+ * @author mengaijun
+ * @Description: TODO
+ * @date: 2019年10月23日 下午5:35:17
+ */
 public class RpcThreadPool {
 	private static final Logger LOG = LoggerFactory.getLogger(RpcThreadPool.class);
 	
@@ -17,7 +23,9 @@ public class RpcThreadPool {
 	private static final int MAX_THREAD_NUM = 5;
 	private static final int WAIT_TIME = 5;
 	
-	
+    /**
+     * （1）执行服务端，方法调用
+     */
 	static volatile ThreadPoolExecutor executor = null;
 	
 	/**

@@ -7,13 +7,11 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.druid.support.logging.LogFactory;
 import com.esotericsoftware.minlog.Log;
 import com.rpc.config.RpcSystemConfig;
-import com.rpc.nettyrpc.RpcServerLoader;
 import com.rpc.nettyrpc.client.handler.MessageSendChannelInitializer;
 import com.rpc.nettyrpc.client.handler.MessageSendHandler;
-import com.rpc.serialize.RpcSerializeProtocol;
+import com.rpc.serialize.RpcSerializeProtocolEnum;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
@@ -31,10 +29,10 @@ public class MessageSendInitializeTask implements Callable<Boolean>{
     static Logger LOG = LoggerFactory.getLogger(MessageSendInitializeTask.class);
 	private EventLoopGroup eventLoopGroup;
 	private InetSocketAddress remoteAddress;
-	private RpcSerializeProtocol protocol;
+	private RpcSerializeProtocolEnum protocol;
 	
 	public MessageSendInitializeTask(EventLoopGroup eventLoopGroup, InetSocketAddress remoteAddress,
-			RpcSerializeProtocol protocol) {
+			RpcSerializeProtocolEnum protocol) {
 		super();
 		this.eventLoopGroup = eventLoopGroup;
 		this.remoteAddress = remoteAddress;

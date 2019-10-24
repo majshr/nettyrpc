@@ -5,6 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.rpc.model.MessageRequest;
 import com.rpc.model.MessageResponse;
+import com.rpc.nettyrpc.client.MessageCallback;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -22,29 +23,25 @@ public class MessageSendHandler extends ChannelInboundHandlerAdapter{
 	 */
 	private volatile Channel channel;
 	
-	/**
-	 * channel 远程连接的地址
-	 */
-	private SocketAddress remoteAddress;
-	
+    /**
+     * channel 远程连接的地址
+     */
+    private SocketAddress remoteAddress;
+
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
-		// 调用父类的方法
-		super.channelActive(ctx);
 		// 设置本类需要的信息
 		this.remoteAddress = ctx.channel().remoteAddress();
 	}
 	
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-        super.channelRegistered(ctx);
         this.channel = ctx.channel();
     }
     
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-    	super.channelRead(ctx, msg);
-    	
+        // handler仅是读取响应，请求是主动发送的
     	MessageResponse response = (MessageResponse) msg;
     	String messageId = response.getMessageId();
     	MessageCallback callback = mapCallback.get(messageId);
@@ -74,7 +71,7 @@ public class MessageSendHandler extends ChannelInboundHandlerAdapter{
      * @return
      */
     public MessageCallback sendRequest(MessageRequest request) {
-    	MessageCallback callback = new MessageCallback(request);
+        MessageCallback callback = new MessageCallback();
     	mapCallback.putIfAbsent(request.getMessageId(), callback);
     	// 发送请求，响应的信息就是调用方法的返回信息
     	channel.writeAndFlush(request);

@@ -1,9 +1,10 @@
 package com.rpc;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.rpc.nettyrpc.client.MessageSendExecutor;
-import com.rpc.serialize.RpcSerializeProtocol;
+import com.rpc.serialize.RpcSerializeProtocolEnum;
 
 import test.service.Calculate;
 
@@ -11,7 +12,7 @@ public class ClientSendRequestTest {
 	
 	public static void main(String[] args) {
 		MessageSendExecutor executor = MessageSendExecutor.getInstance()
-				.setRpcServerLoader("localhost:8081", RpcSerializeProtocol.JDKSERIALIZE);
+				.setRpcServerLoader("localhost:8081", RpcSerializeProtocolEnum.JDKSERIALIZE);
 		Calculate calculate = executor.execute(Calculate.class);
 //		try {
 //			System.out.println(calculate.add(1, 2));	
@@ -35,6 +36,8 @@ public class ClientSendRequestTest {
 	
 	static class RequestThread implements Runnable{
 
+        static AtomicInteger count = new AtomicInteger(1);
+
 		private CountDownLatch countDownLatch;
 		private Calculate calculate;
 		private CountDownLatch finishLatch;
@@ -47,7 +50,7 @@ public class ClientSendRequestTest {
 				e.printStackTrace();
 			}
 			
-			System.out.println(calculate.add(10, 11));
+            System.out.println(count.getAndIncrement() + " : " + calculate.add(10, 11));
 			finishLatch.countDown();
 		}
 
